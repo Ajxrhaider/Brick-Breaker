@@ -207,10 +207,15 @@ function checkBrickCollisions() {
           drawPaddle();
           drawBricks();
           drawScore();
-//function for if the ball is not launched, it will be on the paddle
+      
           if (!ballLaunched) {
             ballX = paddleX + paddleWidth / 2;
             ballY = paddleY - radius;
+      
+            // Text for displaying launch instructions
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText("Press SPACE to launch ball", canvas.width / 2 - 100, canvas.height - 100);
           }
       
           drawBall();
@@ -230,6 +235,5 @@ function checkBrickCollisions() {
           ctx.fillText("Final score of a loser: " + score, 100, 400);
         }
       }
-      
       
       setInterval(gameloop, 10);
