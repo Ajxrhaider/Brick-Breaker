@@ -10,7 +10,7 @@
       // variables for the ball
       var ballX = canvas.width / 2;
       var ballY = canvas.height / 2;
-      var radius = 20;
+      var radius = 10;
       var dx = 3;
       var dy = 3;
       let ballcolor = "white";
