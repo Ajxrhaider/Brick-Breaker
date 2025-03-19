@@ -15,7 +15,7 @@
       var dy = 3;
       let ballcolor = "white";
       //variables for the paddle
-      var paddleX = 600;
+      var paddleX = 550;
       var paddleY = 580;
       var paddleWidth = 100;
       var paddleHeight = 10;
@@ -28,6 +28,8 @@
       var score = 0;
       //variables for gameover
       var gameEnded = false;
+      //variables for ball is stationary
+      var ballLaunched = false;
 
 
 
@@ -133,8 +135,11 @@ function checkBrickCollisions() {
           rightPressed = true;
         } else if (e.keyCode == 37) {
           leftPressed = true;
+        } else if (e.keyCode == 32 && !ballLaunched) { // Space key to start
+          ballLaunched = true;
+          dy = -3; // launch ball upwards
         }
-      }
+      }      
       function KeyupHandler(e) {
         if (e.keyCode == 39) {
           rightPressed = false;
@@ -197,16 +202,27 @@ function checkBrickCollisions() {
       //fuctions for the game loop (basically the game itself plus YOUTUBE man said this si where you put evertything that you want to happen together)
       function gameloop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if ((gameEnded === false)) {
-          drawBall();
-          collison();
+      
+        if (!gameEnded) {
           drawPaddle();
           drawBricks();
           drawScore();
-          ballX += dx;
-          ballY += dy;
+//function for if the ball is not launched, it will be on the paddle
+          if (!ballLaunched) {
+            ballX = paddleX + paddleWidth / 2;
+            ballY = paddleY - radius;
+          }
+      
+          drawBall();
+      
+          if (ballLaunched) {
+            collison();
+            ballX += dx;
+            ballY += dy;
+            checkBrickCollisions();
+          }
+      
           movement();
-          checkBrickCollisions();
         } else {
           ctx.font = "100px Arial";
           ctx.fillStyle = "white";
@@ -214,5 +230,6 @@ function checkBrickCollisions() {
           ctx.fillText("Final score of a loser: " + score, 100, 400);
         }
       }
-
+      
+      
       setInterval(gameloop, 10);
