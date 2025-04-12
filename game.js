@@ -30,6 +30,7 @@
       var gameEnded = false;
       //variables for ball is stationary
       var ballLaunched = false;
+      
 
 
 
@@ -56,10 +57,16 @@
       
         hit() {
           this.hits--;
+          
+          // Change color based on remaining hits
+          if (this.hits === 2) this.color = "blue";
+          if (this.hits === 1) this.color = "green";
+        
           if (this.hits <= 0) {
             this.destroyed = true;
           }
         }
+        
       }
       
 
@@ -179,9 +186,7 @@ function checkBrickCollisions() {
         if (ballX + radius > 1200 || ballX - radius < 0) {
           dx = -dx;
           if (dx < 0) {
-            ballcolor = "blue";
           } else {
-            ballcolor = "green";
           }
         }
         if (ballY + radius > 600 || ballY - radius < 0) {
@@ -200,40 +205,50 @@ function checkBrickCollisions() {
         }
       }
       //fuctions for the game loop (basically the game itself plus YOUTUBE man said this si where you put evertything that you want to happen together)
-      function gameloop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-        if (!gameEnded) {
-          drawPaddle();
-          drawBricks();
-          drawScore();
-      
-          if (!ballLaunched) {
+function gameloop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!gameEnded) {
+        drawPaddle();
+        drawBricks();
+        drawScore();
+
+        if (!ballLaunched) {
             ballX = paddleX + paddleWidth / 2;
             ballY = paddleY - radius;
-      
-            // Text for displaying launch instructions
+
             ctx.font = "20px Arial";
             ctx.fillStyle = "white";
             ctx.fillText("Press SPACE to launch ball", canvas.width / 2 - 100, canvas.height - 100);
-          }
-      
-          drawBall();
-      
-          if (ballLaunched) {
+        }
+
+        drawBall();
+
+        if (ballLaunched) {
             collison();
             ballX += dx;
             ballY += dy;
             checkBrickCollisions();
-          }
-      
-          movement();
-        } else {
-          ctx.font = "100px Arial";
-          ctx.fillStyle = "white";
-          ctx.fillText("Game Over, KYS.", 100, 300);
-          ctx.fillText("Final score of a loser: " + score, 100, 400);
         }
-      }
+
+        movement();
+
+        // Check if all bricks are destroyed
+        if (bricks.every(row => row.every(brick => brick.destroyed))) {
+            ctx.font = "50px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText("Level Cleared!", canvas.width / 2 - 120, 250);
+            document.getElementById("nextLevelButton").style.display = "block";
+        }
+    } else {
+        ctx.font = "50px Arial";
+        ctx.fillStyle = "white";
+        ctx.fillText("Game Over", canvas.width / 2 - 100, 250);
+        ctx.fillText("Final Score: " + score, canvas.width / 2 - 100, 320);
+
+        // Show restart button
+        document.getElementById("restartButton").style.display = "block";
+    }
+}
       
       setInterval(gameloop, 10);
