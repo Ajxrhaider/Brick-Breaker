@@ -35,7 +35,7 @@ let startY = 50;
 let brickWidth = 50;
 let brickHeight = 20;
 // variables for game music
-const gameAudio = new Audio("Giving G&B.mp3");
+const gameAudio = new Audio("Gravity of  the  Fallen.mp3");
 gameAudio.loop = true;
 
 const backgroundImage = new Image();
@@ -158,6 +158,7 @@ function KeydownHandler(e) {
   } else if (e.keyCode == 32 && !ballLaunched) { // Space key to start
     ballLaunched = true;
     dy = -3; // launch ball upwards
+    gameAudio.play();
 
 
   }
