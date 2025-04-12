@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BB game?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="Stylesheet.css" rel="Stylesheet" />
+  </head>
+  <body>
+    <canvas id="myCanvas" width="1200" height="600"></canvas>
+    <button id="restartButton">Restart</button>
+    <script>
+      document
+        .getElementById("restartButton")
+        .addEventListener("click", function () {
+          // Reset game variables
+          gameEnded = false;
+          ballLaunched = false;
+          score = 0;
+          ballX = canvas.width / 2;
+          ballY = canvas.height / 2;
+          dx = 3;
+          dy = -3;
+
+          // Reinitialize bricks using the original layout
+          bricks = [];
+          for (let r = 0; r < brickLayout.length; r++) {
+            bricks[r] = [];
+            for (let c = 0; c < brickLayout[r].length; c++) {
+              if (brickLayout[r][c] > 0) {
+                let hits = brickLayout[r][c];
+                let color =
+                  hits === 3 ? "purple" : hits === 2 ? "blue" : "green";
+                bricks[r][c] = new Brick(
+                  startX + c * brickWidth,
+                  startY + r * brickHeight,
+                  color,
+                  hits
+                );
+              } else {
+                bricks[r][c] = null;
+              }
+            }
+          }
+
+          // Hide restart button
+          document.getElementById("restartButton").style.display = "none";
+        });
+    </script>
+    <script src="LevelTwo.js"></script>
+  </body>
+</html>
