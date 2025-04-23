@@ -72,7 +72,7 @@ class Brick {
 
   draw(ctx) {
     if (!this.destroyed) {
-      ctx.fillStyle = this.color;
+      ctx.fillStyle = this.color; 
       ctx.fillRect(this.x, this.y, this.width, this.height);
       ctx.strokeStyle = "white";
       ctx.strokeRect(this.x, this.y, this.width, this.height);
@@ -265,3 +265,9 @@ function gameloop() {
 document.fonts.ready.then(() => {
   setInterval(gameloop, 10); // start game only after fonts are ready
 });
+
+function nextlevel() {
+  window.location.href = 'LevelTwoByBelema.html';
+  gameAudio.pause(); // Stop the music when navigating to the next level
+  gameAudio.currentTime = 0; // Reset the audio to the beginning  
+}
