@@ -1,67 +1,322 @@
-// --- Sound Design for Brick Breaker Game ---
-// This code uses the Tone.js library to create sound effects for the game.
-// The sounds are triggered based on game events like hitting a brick, paddle, or wall, and for game start, win, and game over events.
-// The sounds are designed to be simple and effective, using square wave oscillators with a short attack and decay time for a punchy sound.
-// The game uses a muted state to prevent sound from playing when the game is muted.
-const synth = new Tone.Synth().toDestination();
+//Well, most codes are suggested by my VSCode, Some by Youtube and then very little by my own head. I understand everything here and did not use any Ai so it would be easier to debug.
+//variables for the canvas (that's the box where the game is played)
+const canvas = document.getElementById("myCanvas");
+const ctx = canvas.getContext("2d");
+//variables for keys (four years in cmp if you dont know this KYS)
+document.addEventListener("keydown", KeydownHandler, false);
+document.addEventListener("keyup", KeyupHandler, false);
+var rightPressed = false;
+var leftPressed = false;
+// variables for the ball
+var ballX = canvas.width / 2;
+var ballY = canvas.height / 2;
+var radius = 10;
+var dx = 3;
+var dy = 3;
+let ballcolor = "white";
+//variables for the paddle
+var paddleX = 550;
+var paddleY = 580;
+var paddleWidth = 100;
+var paddleHeight = 10;
+var paddleSpeed = 5;
+//varibales for bricks
+let bricks = [];
 
-function playSound(type) {
-    if (muted) return;
-    let now = Tone.now();
-    switch (type) {
-        case 'paddleHit':
-            const paddleHitSynth = new Tone.Synth().toDestination();
-            paddleHitSynth.oscillator.type = 'square';
-            paddleHitSynth.envelope.attack = 0.001;
-            paddleHitSynth.envelope.decay = 0.1;
-            paddleHitSynth.envelope.sustain = 0.3;
-            paddleHitSynth.envelope.release = 0.5;
-            paddleHitSynth.triggerAttackRelease("C6", "8n", now);
-            break;
-        case 'brickHit':
-            const brickHitSynth = new Tone.Synth().toDestination();
-            brickHitSynth.oscillator.type = 'square';
-            brickHitSynth.envelope.attack = 0.001;
-            brickHitSynth.envelope.decay = 0.1;
-            brickHitSynth.envelope.sustain = 0.3;
-            brickHitSynth.envelope.release = 0.5;
-            brickHitSynth.triggerAttackRelease("G5", "8n", now);
-            break;
-        case 'wallHit':
-            const wallHitSynth = new Tone.Synth().toDestination();
-            wallHitSynth.oscillator.type = 'square';
-            wallHitSynth.envelope.attack = 0.001;
-            wallHitSynth.envelope.decay = 0.1;
-            wallHitSynth.envelope.sustain = 0.3;
-            wallHitSynth.envelope.release = 0.5;
-            wallHitSynth.triggerAttackRelease("C4", "8n", now);
-            break;
-        case 'gameOver':
-            const gameOverSynth = new Tone.PolySynth().toDestination();
-            gameOverSynth.oscillator.type = 'square';
-            gameOverSynth.envelope.attack = 0.001;
-            gameOverSynth.envelope.decay = 0.1;
-            gameOverSynth.envelope.sustain = 0.3;
-            gameOverSynth.envelope.release = 0.5;
-            gameOverSynth.triggerAttackRelease(["C2", "E2", "G2", "Bb2"], "2n", now);
-            break;
-        case 'gameWon':
-            const gameWonSynth = new Tone.PolySynth().toDestination();
-            gameWonSynth.oscillator.type = 'square';
-            gameWonSynth.envelope.attack = 0.001;
-            gameWonSynth.envelope.decay = 0.1;
-            gameWonSynth.envelope.sustain = 0.3;
-            gameWonSynth.envelope.release = 0.5;
-            gameWonSynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "1n", now);
-            break;
-        case 'gameStart':
-            const gameStartSynth = new Tone.Synth().toDestination();
-            gameStartSynth.oscillator.type = 'square';
-            gameStartSynth.envelope.attack = 0.001;
-            gameStartSynth.envelope.decay = 0.1;
-            gameStartSynth.envelope.sustain = 0.3;
-            gameStartSynth.envelope.release = 0.5;
-            gameStartSynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "1n", now);
-            break;
+//varibles for score
+var score = 0;
+//variables for gameover
+var gameEnded = false;
+//variables for ball is stationary
+var ballLaunched = false;
+//variables for grid positioning of bricks 
+let startX = 100;
+let startY = 50;
+let brickWidth = 50;
+let brickHeight = 20;
+// variables for game music
+const gameAudio = new Audio("Gravity of  the  Fallen.mp3");
+gameAudio.loop = true;
+
+const backgroundImage = new Image();
+backgroundImage.src = 'images/Background.png';
+
+
+let brickLayout = [
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
+  [0, 2, 0, 0, 2, 2, 2, 2, 2, 0, 2, 0, 0, 2, 0, 0, 2, 2, 2], 
+  [0, 2, 0, 0, 2, 2, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 2, 2, 2], 
+  [0, 2, 3, 3, 2, 2, 3, 3, 3, 0, 2, 0, 0, 2, 0, 0, 2, 0, 2],  
+  [0, 2, 3, 3, 2, 2, 3, 3, 3, 0, 2, 0, 0, 2, 0, 0, 2, 0, 2], 
+  [0, 2, 0, 0, 2, 2, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 2, 2, 2], 
+  [0, 2, 0, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2],  
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  
+];
+
+var rowCount = brickLayout.length;
+var columnCount = Math.max(...brickLayout.map(row => row.length));
+
+
+//Class for the bricks
+class Brick {
+  constructor(x, y, color, hits) {
+    this.x = x;
+    this.y = y;
+    this.width = 50;
+    this.height = 20;
+    this.color = color;
+    this.hits = hits; // Number of hits before disappearing
+    this.destroyed = false;
+  }
+
+  draw(ctx) {
+    if (!this.destroyed) {
+      ctx.fillStyle = this.color; 
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      ctx.strokeStyle = "white";
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
     }
+  }
+
+  hit() {
+    this.hits--;
+    if (this.hits <= 0) {
+      this.destroyed = true;
+    } else {
+      // Update color based on remaining hits
+      if (this.hits === 3) this.color = "purple";
+      if (this.hits === 2) this.color = "blue";
+      if (this.hits === 1) this.color = "green";
+    }
+  }
+}
+
+//Loop for bricks initialization
+for (let r = 0; r < brickLayout.length; r++) {
+  bricks[r] = [];
+  for (let c = 0; c < brickLayout[r].length; c++) {
+    if (brickLayout[r][c] > 0) {
+      let hits = brickLayout[r][c];
+      let color = hits === 3 ? "purple" : hits === 2 ? "blue" : "green";
+      bricks[r][c] = new Brick(startX + c * brickWidth, startY + r * brickHeight, color, hits);
+    } else {
+      bricks[r][c] = null;
+    }
+  }
+}
+
+
+//function to draw bricks
+function drawBricks() {
+  for (let r = 0; r < brickLayout.length; r++) {
+    for (let c = 0; c < brickLayout[r].length; c++) {
+      if (bricks[r][c]) { // Check if the brick exists
+        bricks[r][c].draw(ctx);
+      }
+    }
+  }
+}
+
+
+//function for the collision of the ball with the bricks
+function checkBrickCollisions() {
+  for (let r = 0; r < brickLayout.length; r++) {
+    for (let c = 0; c < brickLayout[r].length; c++) {
+      let brick = bricks[r][c];
+
+      if (brick && !brick.destroyed) {
+        if (
+          ballX + radius > brick.x &&
+          ballX - radius < brick.x + brick.width &&
+          ballY + radius > brick.y &&
+          ballY - radius < brick.y + brick.height
+        ) {
+          dy = -dy;
+          score++;
+          brick.hit();
+        }
+      }
+    }
+  }
+}
+
+
+
+//fuctioon for draw score
+function drawScore() {
+  ctx.font = "16px 'Space Grotesk', sans-serif";
+  ctx.fillStyle = "black";
+  ctx.fillText("S c o r e: " + score, 8, 20);
+}
+//fuctions for the keys
+function KeydownHandler(e) {
+  if (e.keyCode == 39) {
+    rightPressed = true;
+  } else if (e.keyCode == 37) {
+    leftPressed = true;
+  } else if (e.keyCode == 32 && !ballLaunched) { // Space key to start
+    ballLaunched = true;
+    dy = -3; // launch ball upwards
+    Tone.start(); // Initialize Tone.js audio context on user interaction
+    gameAudio.play();
+
+
+  }
+}
+function KeyupHandler(e) {
+  if (e.keyCode == 39) {
+    rightPressed = false;
+  } else if (e.keyCode == 37) {
+    leftPressed = false;
+  }
+}
+
+//function for the movement of the paddle
+function movement() {
+  if (rightPressed && paddleX < canvas.width - paddleWidth) {
+    paddleX += paddleSpeed;
+  } else if (leftPressed && paddleX > 0) {
+    paddleX -= paddleSpeed;
+  }
+}
+
+//fuctions for the displaying of the paddle
+function drawPaddle() {
+  ctx.fillStyle = "brown";
+  ctx.fillRect(paddleX, paddleY, paddleWidth, paddleHeight);
+  ctx.strokeStyle = "white";
+  ctx.strokeRect(paddleX, paddleY, paddleWidth, paddleHeight);
+}
+//fuctions for the displaying of the ball
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(ballX, ballY, radius, 0, Math.PI * 2);
+  ctx.fillStyle = ballcolor;
+  ctx.stroke();
+  ctx.strokeStyle = "green";
+  ctx.fill();
+
+}
+//fuctions for the collison of the ball (basically game physics. LOL)
+function collison() {
+  if (ballX + radius > 1200 || ballX - radius < 0) {
+    playWallHitSound(); // Play wall hit sound
+    dx = -dx;
+    if (dx < 0) {
+      ballcolor = "blue";
+    } else {
+      ballcolor = "green";
+    }
+
+  }
+  if (ballY + radius > 600 || ballY - radius < 0) {
+    dy = -dy;
+    ctx.strokeStyle = "red";
+    if (ballY + radius > 600) {
+      gameEnded = true;
+    }
+    if (ballY - radius < 0) { // Only play sound for top wall hit
+        playWallHitSound();
+    }
+  }
+  if (
+    ballY + radius > paddleY &&
+    ballX > paddleX &&
+    ballX < paddleX + paddleWidth
+  ) {
+    playPaddleHitSound(); // Play paddle hit sound
+    dy = -dy;
+  }
+}
+//fuctions for the game loop (basically the game itself plus YOUTUBE man said this is where you put evertything that you want to happen together)
+function gameloop() {
+  ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+  if (!gameEnded) {
+    drawPaddle();
+    drawBricks();
+    drawScore();
+
+    if (!ballLaunched) {
+      ballX = paddleX + paddleWidth / 2;
+      ballY = paddleY - radius;
+
+      // Display launch instructions
+      ctx.font = "20px 'Space Grotesk', sans-serif";
+      ctx.fillStyle = "white";
+      ctx.fillText("Press SPACE to launch ball", canvas.width / 2 - 100, canvas.height - 100);
+    }
+
+    drawBall();
+
+    if (ballLaunched) {
+      collison();
+      ballX += dx;
+      ballY += dy;
+      checkBrickCollisions();
+    }
+
+  } else {
+    ctx.font = "100px 'Space Grotesk', sans-serif";
+    ctx.fillStyle = "white";
+    ctx.fillText("Game Over", 50, 300);
+    ctx.fillText("Final score of a loser: " + score, 50, 400);
+    document.getElementById("restartButton").style.display = "block";
+  }
+
+  movement();
+
+  
+}
+document.fonts.ready.then(() => {
+  setInterval(gameloop, 10); // start game only after fonts are ready
+});
+
+function nextlevel() {
+  window.location.href = 'LevelTwoByBelema.html';
+  gameAudio.pause(); // Stop the music when navigating to the next level
+  gameAudio.currentTime = 0; // Reset the audio to the beginning  
+}
+
+// --- Sound Effect Logic using Tone.js ---
+
+// Create Synths (using square wave for 8-bit feel)
+const wallHitSynth = new Tone.Synth({
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.001, decay: 0.1, sustain: 0.1, release: 0.1 }
+}).toDestination();
+
+const paddleHitSynth = new Tone.Synth({
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.001, decay: 0.1, sustain: 0.1, release: 0.1 }
+}).toDestination();
+
+const brickHitSynth = new Tone.Synth({
+    oscillator: { type: 'square' },
+    envelope: { attack: 0.001, decay: 0.1, sustain: 0.1, release: 0.1 }
+}).toDestination();
+
+// Function to play wall hit sound
+function playWallHitSound() {
+    wallHitSynth.triggerAttackRelease("C3", "16n", Tone.now()); // Low pitch
+}
+
+// Function to play paddle hit sound
+function playPaddleHitSound() {
+    paddleHitSynth.triggerAttackRelease("C4", "16n", Tone.now()); // Medium pitch
+}
+
+// Function to play brick hit sound (varying pitch based on hits)
+function playBrickHitSound(brickHits) {
+    let note = "G4"; // Default for 1-hit bricks (green)
+    if (brickHits === 2) {
+        note = "A4"; // Higher pitch for 2-hit bricks (blue)
+    } else if (brickHits >= 3) { // >= 3 handles the initial state of 3-hit bricks (purple)
+        note = "B4"; // Highest pitch for 3-hit bricks
+    }
+    // Ensure the synth is ready and trigger the sound
+    if (Tone.context.state === 'running') {
+         brickHitSynth.triggerAttackRelease(note, "16n", Tone.now());
+    }
+
 }
