@@ -300,7 +300,7 @@ function gameloop() {
     ctx.textAlign = "center";
     ctx.fillText("Game Over, KYS", canvas.width / 2, 250);
     ctx.font = "40px 'Space Grotesk', sans-serif";
-    ctx.fillText("Final score: " + score, canvas.width / 2, 350); // Simpler text
+    ctx.fillText("Final score of a loser: " + score, canvas.width / 2, 350); // Simpler text
     ctx.textAlign = "left"; // Reset alignment
     document.getElementById("restartButton").style.display = "block"; // Show restart button
     // Consider showing next level button only if score condition met? Or maybe not on game over.
