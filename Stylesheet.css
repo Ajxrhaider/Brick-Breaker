@@ -53,6 +53,9 @@
 }
 
 body {
+  background-repeat: no-repeat;
+  background-attachment: fixed;}
+ .tank{
   margin:auto, 0;
   font-family: sans-serif, verdana, monospace;
   color: black;
@@ -192,4 +195,7 @@ div{
 	margin-top: 10hv;
 	margin-bottom: -100vh;
 	padding-bottom: -100vh;
+}
+.notyet {
+
 }
